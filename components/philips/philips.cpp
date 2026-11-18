@@ -26,6 +26,9 @@
 #include "number/philips_number.h"
 #endif
 #include "esphome/core/log.h"
+#if __has_include("esphome/core/alloc_helpers.h")
+#include "esphome/core/alloc_helpers.h"
+#endif
 #include "esphome/core/helpers.h"
 
 namespace esphome {

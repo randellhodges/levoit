@@ -1,11 +1,15 @@
 #include "levoit.h"
 #include "levoit_message.h"
 #include "esphome/components/network/util.h"
+#if __has_include("esphome/core/alloc_helpers.h")
+#include "esphome/core/alloc_helpers.h"
+#endif
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 #include "esphome/core/util.h"
 #include "esphome/components/wifi/wifi_component.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <cstdint>
@@ -526,6 +530,13 @@ namespace esphome
 
             case NumberType::HUMIDITY_TARGET:
                 this->sendCommand(setHumidityTarget);
+                break;
+
+            case NumberType::WHITE_NOISE_MIN:
+            case NumberType::FILTER_LIFETIME_MONTHS:
+            case NumberType::USED_CADR:
+            case NumberType::TOTAL_RUNTIME:
+                // These values do not send a UART command.
                 break;
             }
         }
@@ -1071,7 +1082,7 @@ namespace esphome
 
                     if (remaining > 0)
                     {
-                        ESP_LOGD(TAG, "ESP timer update: %u sec remaining", remaining);
+                        ESP_LOGD(TAG, "ESP timer update: %" PRIu32 " sec remaining", remaining);
                         this->send_timer_update(remaining);
                         this->publish_sensor(SensorType::TIMER_CURRENT, remaining_hours);
                         this->publish_text_sensor(TextSensorType::TIMER_DURATION_CURRENT,
@@ -1358,7 +1369,7 @@ namespace esphome
             esp_timer_duration_secs_ = duration_secs;
             esp_timer_last_update_ = esp_timer_start_millis_;
             esp_timer_zero_count_ = 0;
-            ESP_LOGI(TAG, "ESP timer started: %u seconds", duration_secs);
+            ESP_LOGI(TAG, "ESP timer started: %" PRIu32 " seconds", duration_secs);
         }
 
         void Levoit::stop_esp_timer()
@@ -1381,7 +1392,7 @@ namespace esphome
             auto message = build_levoit_message(msg_type, payload, messageUpCounter);
             if (message.size() > 0)
             {
-                ESP_LOGD(TAG, ">>> TX timer update: %u sec remaining", remaining_secs);
+                ESP_LOGD(TAG, ">>> TX timer update: %" PRIu32 " sec remaining", remaining_secs);
                 this->write_array(message.data(), message.size());
                 this->flush();
                 if (messageUpCounter == 255)
